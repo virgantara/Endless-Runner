@@ -93,12 +93,6 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Point Cloud Recognition')
     parser.add_argument('--exp_name', type=str, default='exp', metavar='N',
                         help='Name of the experiment')
-    parser.add_argument('--model', type=str, default='dgcnn_cls', metavar='N',
-                        choices=['dgcnn_cls', 'dgcnn_seg', 'pointnet_cls', 'pointnet_seg'],
-                        help='Model to use, [pointnet, dgcnn]')
-    parser.add_argument('--dataset_name', type=str, default='modelnet40svm', metavar='N',
-                        choices=['modelnet40svm', 'scanobjectnnsvm'],
-                        help='Dataset name to test, [modelnet40svm, scanobjectnnsvm]')
     parser.add_argument('--batch_size', type=int, default=4, metavar='batch_size',
                         help='Size of batch)')
     parser.add_argument('--test_batch_size', type=int, default=16, metavar='batch_size',
