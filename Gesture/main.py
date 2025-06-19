@@ -33,7 +33,8 @@ def _init_():
 
 def train(args, io):
     data_dir = 'data/Full-body_Gestures'
-    dataset = VideoDatasetCV(data_dir)
+    resized = (args.resize, args.resize)
+    dataset = VideoDatasetCV(data_dir, frames_per_clip=args.frames_per_clip, resize=resized)
     train_set, test_set = split_dataset(dataset)
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True)
     test_loader = DataLoader(test_set, batch_size=args.batch_size)  
@@ -96,6 +97,8 @@ def parse_args():
                         help='Name of the experiment')
     parser.add_argument('--batch_size', type=int, default=4, metavar='batch_size',
                         help='Size of batch)')
+    parser.add_argument('--resize', type=int, default=112, help='Resized image')
+    parser.add_argument('--frames_per_clip', type=int, default=16, help='frames_per_clip')
     parser.add_argument('--test_batch_size', type=int, default=16, metavar='batch_size',
                         help='Size of batch)')
     parser.add_argument('--epochs', type=int, default=250, metavar='N',
