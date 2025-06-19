@@ -1,2 +1,4 @@
 data/**
 *.mp4
+*.log
+checkpoints/**

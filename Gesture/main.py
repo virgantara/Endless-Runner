@@ -83,11 +83,12 @@ def train(args, io):
         test_acc = correct / total
         print(f"[Epoch {epoch+1}] Test Acc: {test_acc:.4f}")
 
-        if test_acc > best_acc:
+        if test_acc >= best_acc:
             best_acc = test_acc
-            torch.save(model.state_dict(), save_path)
-            print(f"Best model saved at epoch {epoch+1} with test acc {best_acc:.4f}")
-
+            print("Best Test Acc: ",best_acc)
+            torch.save(model.state_dict(), 'checkpoints/%s/models/model.t7' % args.exp_name)
+        torch.save(model.state_dict(), 'checkpoints/%s/models/model_final.t7' % args.exp_name)
+        
 def parse_args():
     # Training settings
     parser = argparse.ArgumentParser(description='Point Cloud Recognition')
