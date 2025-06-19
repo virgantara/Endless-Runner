@@ -1,0 +1,31 @@
+outputs/**
+wandb/**
+*.tar.gz
+checkpoints/**
+data/**
+.idea/**
+log/**
+__pycache__/**
+*.h5
+*.csv
+*.xyz
+*.pyc
+*.png
+config.ini
+outputs/**
+*.pth
+*.pt
+*.t7
+
+# IDE Files
+#-------------------------
+/nbproject/
+.idea/*
+
+## Sublime Text cache files
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+*.sublime-project
+
