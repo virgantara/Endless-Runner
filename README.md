@@ -32,3 +32,11 @@ pip install -r requirments.txt
 				|right
 				|up
 ```
+
+## Hasil Voice Classification
+### Tgl 26 Juni 2025 13:41
+| No | Model        | Test Acc (%) |
+|----|--------------|--------------|
+| 1  | MLPClassifier | 93.54        |
+| 2  | CNN1D         | 96.77        |
+

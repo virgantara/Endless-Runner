@@ -4,7 +4,7 @@ from dataset import VoiceCommandDataset
 import torch
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset, DataLoader, Subset
-from models import MLPClassifier
+from models import MLPClassifier, CNN1DSoundClassifier
 from tqdm import tqdm
 import torch.nn as nn
 import torch.nn.functional as F
@@ -76,7 +76,8 @@ def train(args, io):
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, collate_fn=collate_fn_pad)
 
     input_size = 40  # from n_mfcc=40
-    model = MLPClassifier(input_size=input_size, num_classes=num_classes).to(device)
+    model = CNN1DSoundClassifier(input_channels=input_size, num_classes=num_classes).to(device)
+    # model = MLPClassifier(input_size=input_size, num_classes=num_classes).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
     criterion = nn.CrossEntropyLoss()
 
@@ -90,13 +91,9 @@ def train(args, io):
         total_loss = 0
         for waveforms, labels in tqdm(train_loader, desc=f"Epoch {epoch+1}"):
             waveforms, labels = waveforms.to(device), labels.to(device)
+            waveforms = waveforms.squeeze(1) if waveforms.ndim == 3 else waveforms
+            features = waveforms.view(waveforms.size(0), waveforms.size(2), waveforms.size(3))  # [B, 1, 40, T] → [B, 40, T]
             
-            if waveforms.ndim == 3:
-                waveforms = waveforms.squeeze(1)
-            features = waveforms.mean(dim=-1)
-            if features.ndim == 3 and features.shape[1] == 1:
-                features = features.squeeze(1)
-
             preds = model(features)
             loss = criterion(preds, labels)
 
@@ -117,13 +114,9 @@ def train(args, io):
         with torch.no_grad():
             for waveforms, labels in val_loader:
                 waveforms, labels = waveforms.to(device), labels.to(device)
-                if waveforms.ndim == 3:
-                    waveforms = waveforms.squeeze(1)
-                features = waveforms.mean(dim=-1)
+                waveforms = waveforms.squeeze(1) if waveforms.ndim == 3 else waveforms
+                features = waveforms.view(waveforms.size(0), waveforms.size(2), waveforms.size(3))  # [B, 1, 40, T] → [B, 40, T]
                 
-                if features.ndim == 3 and features.shape[1] == 1:
-                    features = features.squeeze(1)  # [B, 1, 40] -> [B, 40]
-
                 preds = model(features)
 
                 val_loss = criterion(preds, labels)
