@@ -22,3 +22,13 @@ pip install -r requirments.txt
 # Training Gesture
 1. Open terminal and change directory to Gesture `cd Gesture`
 1. Run `python main.py`
+
+## Struktur dataset voice
+```cmd
+--data
+	|
+	|--english--|down
+				|left
+				|right
+				|up
+```
