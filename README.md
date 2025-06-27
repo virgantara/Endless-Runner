@@ -15,8 +15,7 @@ pip install -r requirments.txt
 ```
 
 # Dataset
-1. Download dataset from [here](https://drive.google.com/drive/folders/1Eoz_s6n4jPc5ikg9J29R7dAT7iPIxese?usp=drive_link)
-`
+1. Download dataset from [here](https://drive.google.com/drive/folders/1Eoz_s6n4jPc5ikg9J29R7dAT7iPIxese?usp=sharing)
 1. Create a directory with name `data`
 1. Extract the compressed dataset into `data` directory 
 
