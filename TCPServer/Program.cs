@@ -1,4 +1,6 @@
-﻿using System;
+﻿using TCPServer;
+
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -11,6 +13,9 @@ class TcpServerApp
     static bool isRunning = false;
     static TextView? logTextView;
     static Thread? serverThread;
+    static DrawingArea? canvasArea;
+
+    static Kotak box = new Kotak(150, 50, 20, 20);
 
     public static void Main()
     {
@@ -28,9 +33,18 @@ class TcpServerApp
         logTextView = new TextView();
         logTextView.Editable = false;
 
+        // === Drawing Area (Canvas) ===
+        canvasArea = new DrawingArea();
+        canvasArea.SetSizeRequest(400, 150);
+        canvasArea.Drawn += OnDrawCanvas;
+
         vbox.PackStart(startBtn, false, false, 0);
         vbox.PackStart(stopBtn, false, false, 0);
-        vbox.PackStart(new ScrolledWindow() { logTextView }, true, true, 0);
+        vbox.PackStart(canvasArea, false, false, 5);
+        ScrolledWindow scrolled = new ScrolledWindow();
+        scrolled.Add(logTextView);
+        vbox.PackStart(scrolled, true, true, 0);
+
 
         win.Add(vbox);
         win.ShowAll();
@@ -55,6 +69,20 @@ class TcpServerApp
         };
 
         Application.Run();
+    }
+
+    static void OnDrawCanvas(object o, DrawnArgs args)
+    {
+        var cr = args.Cr;
+        var allocation = canvasArea?.Allocation;
+
+        if (allocation == null){
+            return;
+        }
+
+        cr.SetSourceRGB(0, 1, 0);
+        cr.Rectangle(box.X, box.Y, box.Width, box.Height);
+        cr.Fill();
     }
 
     static void StartServer()
@@ -92,6 +120,14 @@ class TcpServerApp
                 if (byteCount == 0) break;
                 string message = Encoding.UTF8.GetString(buffer, 0, byteCount);
                 AppendLog("Received: " + message);
+
+                if (message == "left" || message == "right" || message == "up" || message == "down")
+                {
+                    box.Move(message);  // Gerakkan kotak
+                    Application.Invoke(delegate {
+                        canvasArea?.QueueDraw();
+                    }); // Gambar ulang
+                }
             }
         }
         catch (Exception ex)
@@ -124,8 +160,11 @@ class TcpServerApp
 	        // Auto-scroll ke atas (karena log terbaru ada di atas)
 	        TextIter startIter = buffer.StartIter;
 	        logTextView.ScrollToIter(startIter, 0, false, 0, 0);
+
+            canvasArea?.QueueDraw();
 	    });
 	}
+
 
 
 }
