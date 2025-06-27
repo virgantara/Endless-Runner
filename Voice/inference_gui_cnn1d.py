@@ -126,9 +126,18 @@ def stop_listening():
 
 root = tk.Tk()
 root.title("Voice Command CNN1D")
+root.configure(bg="#2e2e2e")  # Abu-abu tua
 
 volume_level = tk.DoubleVar()
 result_var = tk.StringVar()
+
+style = ttk.Style()
+style.theme_use("clam")  # gunakan tema yang bisa dimodifikasi
+style.configure("TFrame", background="#2e2e2e")
+style.configure("TLabel", background="#2e2e2e", foreground="white", font=("Arial", 12))
+style.configure("TButton", background="#444", foreground="white")
+style.map("TButton", background=[("active", "#666")])
+style.configure("TProgressbar", background="#4caf50")
 
 frame = ttk.Frame(root, padding=20)
 frame.grid()

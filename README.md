@@ -6,7 +6,8 @@ This repo is for Serious Game Endless Runner project
 1. Python `version=3.9`
 1. Create conda environment
 ```cmd
-conda install -n py39-env python=3.9
+conda create -n py39-env python=3.9
+conda activate py39-env
 ```
 1. Install necessary libraries with:
 ```cmd
@@ -24,13 +25,14 @@ pip install -r requirments.txt
 1. Run `python main.py`
 
 ## Struktur dataset voice
-```cmd
+```lua
 --data
-	|
-	|--english--|down
-				|left
-				|right
-				|up
+   |
+   |--english--|--down
+               |--left
+               |--right
+               |--up
+
 ```
 
 ## Hasil Voice Classification
@@ -40,3 +42,34 @@ pip install -r requirments.txt
 | 1  | MLPClassifier | 93.54        |
 | 2  | CNN1D         | 96.77        |
 
+
+
+# Setup C# TCP Server (GTK + Voice Visual Feedback)
+## Requirements
+1. .NET SDK 9.0
+1. GTK# (GtkSharp for Linux/Mac/Windows)
+
+## Install GtkSharp
+```xml
+<PackageReference Include="GtkSharp" Version="3.24.24.4" />
+```
+
+## Compile dan Run
+```bash
+dotnet run
+```
+
+## Build
+```bash
+dotnet build
+```
+
+## Publish for Linux
+```bash
+dotnet publish -c Release -r linux-x64 --self-contained true
+```
+
+## Publish for Windows
+```bash
+dotnet publish -c Release -r win-x64 --self-contained true
+```
