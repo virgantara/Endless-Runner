@@ -42,7 +42,10 @@ pip install -r requirments.txt
 | 1  | MLPClassifier | 93.54        |
 | 2  | CNN1D         | 96.77        |
 
-
+## Run inference model CNN 1D
+1. Download model dari [sini](https://drive.google.com/file/d/1Irc6I4x7QZt6Xmbhfe3r2YchhOvp_up-/view?usp=sharing)
+2. Ubah `MODEL_PATH` di file `inference_gui_cnn1.py` sesuai dengan path model pada poin 1.
+3. Jalankan perintah `python inference_gui_cnn1.py`
 
 # Setup C# TCP Server (GTK + Voice Visual Feedback)
 ## Requirements
