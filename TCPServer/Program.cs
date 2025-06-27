@@ -15,7 +15,7 @@ class TcpServerApp
     static Thread? serverThread;
     static DrawingArea? canvasArea;
 
-    static Kotak box = new Kotak(150, 50, 20, 20);
+    static Kotak box = new Kotak(50, 20, 20);
 
     public static void Main()
     {
