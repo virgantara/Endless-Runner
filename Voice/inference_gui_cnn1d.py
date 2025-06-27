@@ -11,8 +11,8 @@ from models import CNN1DSoundClassifier  # Ganti jika nama model berbeda
 SAMPLE_RATE = 16000
 DURATION = 1.0  # seconds
 INPUT_SIZE = 40
-NUM_CLASSES = 4
-LABELS = ['down', 'left', 'right', 'up']
+NUM_CLASSES = 6
+LABELS = ['down', 'go', 'left', 'right', 'stop', 'up']
 MODEL_PATH = 'checkpoints/exp_cnn1d/models/best_model.pth'
 
 # === Load model ===
@@ -29,77 +29,95 @@ mfcc_transform = torchaudio.transforms.MFCC(
     melkwargs={"n_fft": 400, "hop_length": 160, "n_mels": INPUT_SIZE}
 )
 
+is_listening = False
+
+
+def continuous_listen():
+    global is_listening
+    window_size = int(0.05 * SAMPLE_RATE)  # 50ms
+
+    while is_listening:
+        frames = []
+
+        def callback(indata, frames_count, time, status):
+            rms = np.sqrt(np.mean(indata**2))
+            volume_level.set(min(rms * 500, 100))  # scale
+            frames.append(indata.copy())
+
+        with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, dtype='float32',
+                            blocksize=window_size, callback=callback):
+            sd.sleep(int(DURATION * 1000))
+
+        audio = np.concatenate(frames, axis=0).T
+        global_rms = np.sqrt(np.mean(audio**2))
+
+        if global_rms < 0.02:
+            result_var.set("No sound detected")
+            continue
+
+        waveform = torch.tensor(audio, dtype=torch.float32)
+        if waveform.ndim == 1:
+            waveform = waveform.unsqueeze(0)
+        
+        features = mfcc_transform(waveform)  # [1, 40, T]
+        features = features.squeeze(0).unsqueeze(0)  # shape: [1, 40, T]
+        features = features.to(device)
+
+        with torch.no_grad():
+            output = model(features)
+            probs = torch.softmax(output, dim=1)
+            max_prob, pred = torch.max(probs, dim=1)
+
+            if max_prob.item() < 0.5:
+                result_var.set(f"Uncertain ({global_rms:.4f})")
+            else:
+                prediction = LABELS[pred.item()]
+                result_var.set(f"Predicted: {prediction} ({max_prob.item():.2f})")
+
+
+def start_listening():
+    global is_listening
+    if not is_listening:
+        is_listening = True
+        result_var.set(" Listening...")
+        threading.Thread(target=continuous_listen, daemon=True).start()
+
+def stop_listening():
+    global is_listening
+    is_listening = False
+    result_var.set(" Stopped Listening.")
 
 # === Inference Function ===
-def record_and_predict():
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    frames = []
-    window_size = int(0.05 * SAMPLE_RATE)  # 50ms chunks
 
-    def callback(indata, frames_count, time, status):
-        rms = np.sqrt(np.mean(indata**2))
-        volume_level.set(min(rms * 500, 100))  # scale to 0–100
-        frames.append(indata.copy())
-
-    with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, dtype='float32',
-                        blocksize=window_size, callback=callback):
-        sd.sleep(int(DURATION * 1000))
-
-    # Preprocess audio
-    audio = np.concatenate(frames, axis=0).T   # shape: [1, N]
-    waveform = torch.tensor(audio, dtype=torch.float32)
-
-    if waveform.ndim == 1:
-        waveform = waveform.unsqueeze(0)
-
-    features = mfcc_transform(waveform)  # [1, 40, T]
-    features = features.squeeze(0).unsqueeze(0)  # shape: [1, 40, T]
-    features = features.to(device)
-    # print("features: ",features.size())
-    with torch.no_grad():
-        
-        output = model(features)
-        
-        probs = torch.softmax(output, dim=1)
-        max_prob, pred = torch.max(probs, dim=1)
-
-        if max_prob.item() < 0.5:
-            result_var.set("Uncertain ")
-        else:
-            prediction = LABELS[pred.item()]
-            result_var.set(f"Predicted: {prediction} ({max_prob.item():.2f}) ")
-
-def on_button_click():
-    result_var.set("🎤 Listening...")
-    threading.Thread(target=record_and_predict, daemon=True).start()
-
-# === GUI Setup ===
 root = tk.Tk()
 root.title("🎙 Voice Command CNN1D")
 
 volume_level = tk.DoubleVar()
+result_var = tk.StringVar()
 
 frame = ttk.Frame(root, padding=20)
 frame.grid()
 
 title = ttk.Label(frame, text="Voice Command Classifier (CNN1D)", font=("Arial", 16))
-title.grid(column=0, row=0, pady=10)
+title.grid(column=0, row=0, columnspan=2, pady=10)
 
-button = ttk.Button(frame, text="🎧 Start Listening", command=on_button_click)
-button.grid(column=0, row=1, pady=10)
+start_btn = ttk.Button(frame, text="Start Listening", command=start_listening)
+start_btn.grid(column=0, row=1, pady=10)
+
+stop_btn = ttk.Button(frame, text="Stop Listening", command=stop_listening)
+stop_btn.grid(column=1, row=1, pady=10)
 
 progress = ttk.Progressbar(frame, orient='horizontal', length=300,
                            mode='determinate', maximum=100,
                            variable=volume_level)
-progress.grid(column=0, row=2, pady=10)
+progress.grid(column=0, row=2, columnspan=2, pady=10)
 
-result_var = tk.StringVar()
 result_label = ttk.Label(frame, textvariable=result_var, font=("Arial", 14))
-result_label.grid(column=0, row=3, pady=10)
+result_label.grid(column=0, row=3, columnspan=2, pady=10)
 
-# Volume Meter Refresh
+# Refresh UI loop
 def update_gui():
     root.after(50, update_gui)
-
 update_gui()
+
 root.mainloop()
