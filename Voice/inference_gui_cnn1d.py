@@ -6,6 +6,12 @@ import tkinter as tk
 from tkinter import ttk
 import threading
 from models import CNN1DSoundClassifier  # Ganti jika nama model berbeda
+import socket
+
+TCP_HOST = '127.0.0.1'  # Ganti dengan IP server C# jika perlu
+TCP_PORT = 5005
+
+socketClient = None
 
 # === Settings ===
 SAMPLE_RATE = 16000
@@ -29,6 +35,13 @@ mfcc_transform = torchaudio.transforms.MFCC(
     melkwargs={"n_fft": 400, "hop_length": 160, "n_mels": INPUT_SIZE}
 )
 
+def send_tcp_command(command):
+    try:
+        socketClient.sendall(command.encode('utf-8'))
+        print(f"[TCP] Sent: {command}")
+    except Exception as e:
+        print(f"[TCP] Error: {e}")
+
 is_listening = False
 
 
@@ -51,7 +64,7 @@ def continuous_listen():
         audio = np.concatenate(frames, axis=0).T
         global_rms = np.sqrt(np.mean(audio**2))
 
-        if global_rms < 0.02:
+        if global_rms < 0.05:
             result_var.set("No sound detected")
             continue
 
@@ -73,24 +86,46 @@ def continuous_listen():
             else:
                 prediction = LABELS[pred.item()]
                 result_var.set(f"Predicted: {prediction} ({max_prob.item():.2f})")
+                send_tcp_command(prediction)
 
 
 def start_listening():
-    global is_listening
-    if not is_listening:
+
+    global is_listening, socketClient
+
+    if not is_listening:    
+        try:
+            socketClient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            socketClient.connect((TCP_HOST, TCP_PORT))
+            print("TCP Connected")
+        except Exception as e:
+            result_var.set(f"TCP Connection failed: {e}")
+            return
+
+
         is_listening = True
         result_var.set(" Listening...")
+
         threading.Thread(target=continuous_listen, daemon=True).start()
 
 def stop_listening():
-    global is_listening
+    global is_listening, socketClient
     is_listening = False
+    
+    if socketClient:
+        try:
+            socketClient.close()
+            print("[TCPT] closed")
+        except Exception as e:
+            pass
+
+    socketClient = None
     result_var.set(" Stopped Listening.")
 
 # === Inference Function ===
 
 root = tk.Tk()
-root.title("🎙 Voice Command CNN1D")
+root.title("Voice Command CNN1D")
 
 volume_level = tk.DoubleVar()
 result_var = tk.StringVar()

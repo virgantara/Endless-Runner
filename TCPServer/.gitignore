@@ -1,0 +1,44 @@
+# Build results
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userprefs
+
+# Visual Studio Code / JetBrains Rider
+.vscode/
+.idea/
+
+# Auto-generated files
+*.log
+*.tlog
+*.pidb
+*.svclog
+*.mdb
+
+# Compiled DLLs / EXEs
+*.dll
+*.exe
+*.pdb
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# NuGet packages (optional, if not restoring from lock file)
+packages/
+*.nupkg
+
+# .NET Core files
+project.lock.json
+project.fragment.lock.json
+
+# GTK / Linux cache files (safe additions)
+*.cache
+*.gtkrc
+
+# Optional: environment files
+.env
+*.db
